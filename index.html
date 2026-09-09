@@ -119,7 +119,6 @@
       position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
-    /* FREEZE ONLY FIRST COLUMN (STUDENTS) */
     th:first-child, td:first-child {
       position: sticky; left: 0; z-index: 3; background: var(--card);
       border-right: 2px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);
@@ -145,14 +144,12 @@
       margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
     }
 
-    /* ITALICIZED REMARKS / STATUS CELL */
     .status-cell { 
       font-size: 0.75rem; color: #15803d; font-weight: 600; font-style: italic; 
       cursor: default; line-height: 1.1; word-break: break-word; min-width: 110px; 
     }
     body.teacher-mode .status-cell { cursor: pointer; text-decoration: underline dotted var(--primary); }
 
-    /* TOKEN BUTTON STYLING */
     .token-btn {
       background: none; border: none; font-size: 1.3rem; cursor: pointer;
       transition: transform 0.15s; opacity: 1 !important; filter: none !important;
@@ -170,7 +167,6 @@
     .icon-btn-sm:hover { opacity: 1; }
     .nav-breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 
-    /* LESSON NOTES & RESOURCES SECTION */
     .resources-section {
       margin-top: 2rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 1.25rem;
     }
@@ -179,7 +175,6 @@
       display: flex; justify-content: space-between; align-items: center; gap: 1rem;
     }
 
-    /* MODAL POP-UP STYLING */
     .modal-backdrop {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.6);
       display: none; justify-content: center; align-items: center; z-index: 100; padding: 1rem;
@@ -316,32 +311,29 @@
     </div>
   </div>
 
-  <!-- FIREBASE SCRIPTS -->
+  <!-- FIREBASE REALTIME DATABASE COMPAT SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyAABIEep2GsKERmOWUktIzT1_AEnv2MEZo",
-      authDomain: "math-tracker-d070f.firebaseapp.com",
-      projectId: "math-tracker-d070f",
-      storageBucket: "math-tracker-d070f.firebasestorage.app",
-      messagingSenderId: "1040140743983",
-      appId: "1:1040140743983:web:e4e1ca6b1e6f6c6d269dda"
+      apiKey: "AIzaSyA0Yez-NLfbhU2Zj7CqeyNAgJ-vOQYVlvw",
+      authDomain: "math7-database-26.firebaseapp.com",
+      databaseURL: "https://math7-database-26-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "math7-database-26",
+      storageBucket: "math7-database-26.firebasestorage.app",
+      messagingSenderId: "1057749107077",
+      appId: "1:1057749107077:web:aae6d67955e0ba75f0c4ec"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const storage = firebase.storage();
-    const docRef = db.collection('dashboard').doc('state');
+    const db = firebase.database();
+    const dbRef = db.ref('dashboard/state');
 
     const TEACHER_PASS = "121488";
     let isTeacher = false;
     let currentSection = null;
     let currentTerm = 1;
-    let activeEditingStudentId = null;
-    let activeEditingSectionId = null;
 
     let state = {
       headingText: "🎓 Classroom Activity Hub",
@@ -355,9 +347,10 @@
       resources: []
     };
 
-    docRef.onSnapshot((doc) => {
-      if (doc.exists) {
-        state = Object.assign({}, state, doc.data());
+    // Listen for data updates in real-time
+    dbRef.on('value', (snapshot) => {
+      if (snapshot.exists()) {
+        state = Object.assign({}, state, snapshot.val());
         render();
       } else {
         saveState();
@@ -365,52 +358,22 @@
     });
 
     function saveState() {
-      docRef.set(state).catch(err => {
-        console.error("Firestore Save Error: ", err);
+      dbRef.set(state).catch(err => {
+        console.error("Firebase Database Save Error: ", err);
         alert("Failed to save changes!");
       });
     }
 
-    function processAndCompressImage(file, maxWidth = 1200, quality = 0.7) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-          const img = new Image();
-          img.src = event.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-
-            if (width > maxWidth) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            resolve(canvas.toDataURL('image/jpeg', quality));
-          };
-          img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
-      });
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // FIREBASE STORAGE UPLOADER
-    async function uploadToStorage(file, path) {
-      try {
-        const storageRef = storage.ref(path);
-        const snapshot = await storageRef.put(file);
-        return await snapshot.ref.getDownloadURL();
-      } catch (err) {
-        console.warn("Storage Upload direct error, falling back to local compressed DataURL:", err);
-        return await processAndCompressImage(file);
+    function render() {
+      if (currentSection) {
+        renderSectionTable();
+      } else {
+        renderHome();
       }
     }
 
@@ -464,14 +427,6 @@
       }
     }
 
-    function render() {
-      if (currentSection) {
-        renderSectionTable();
-      } else {
-        renderHome();
-      }
-    }
-
     function renderHome() {
       const bannerEl = document.getElementById('main-banner');
       if (state.banner) bannerEl.style.backgroundImage = `url('${state.banner}')`;
@@ -480,11 +435,6 @@
 
       const grid = document.getElementById('sections-grid');
       grid.innerHTML = '';
-
-      if (!state.sections || state.sections.length === 0) {
-        grid.innerHTML = `<p style="color:var(--muted); font-style:italic; grid-column:1/-1;">No sections created yet. Log in as Teacher to add your first section!</p>`;
-        return;
-      }
 
       (state.sections || []).forEach(sec => {
         const studentCount = (state.students || []).filter(s => s.sectionId === sec.id).length;
@@ -497,8 +447,6 @@
           <div class="card-cover" style="background-image: url('${sec.cover || defaultCover}'); background-position-y: ${posY}%;">
             <div class="card-actions">
               <button class="action-badge-btn" onclick="renameSection(event, '${sec.id}')">✏️ Name</button>
-              <button class="action-badge-btn" onclick="triggerCoverChange(event, '${sec.id}')">📷 Cover</button>
-              <button class="action-badge-btn" onclick="adjustCoverY(event, '${sec.id}')">↕️ Frame</button>
               <button class="action-badge-btn" style="background:var(--danger);" onclick="deleteSection(event, '${sec.id}')">🗑️</button>
             </div>
           </div>
@@ -553,7 +501,6 @@
 
         const teacherControls = isTeacher 
           ? `<div style="margin-top:2px;">
-              <button class="icon-btn-sm" onclick="editActivity('${act.id}')">✏️</button>
               <button class="icon-btn-sm" style="color:var(--danger);" onclick="deleteActivity('${act.id}')">🗑️</button>
              </div>` 
           : '';
@@ -574,12 +521,6 @@
       headerRow.innerHTML = headerHtml;
 
       tbody.innerHTML = '';
-
-      if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${activities.length + 2}" style="padding:1.5rem; color:var(--muted); font-style:italic;">No students added to this section yet. Use Teacher Controls above to add students.</td></tr>`;
-        return;
-      }
-
       students.forEach(student => {
         const tr = document.createElement('tr');
         
@@ -590,9 +531,9 @@
         let studentCell = `
           <td>
             <div class="student-info">
-              <img src="${student.avatar || 'https://via.placeholder.com/30'}" class="avatar" onclick="triggerAvatarChange(${student.id})" title="Click to upload profile photo" />
+              <img src="${student.avatar || 'https://via.placeholder.com/30'}" class="avatar" />
               <div style="flex:1; min-width: 0;">
-                <strong class="student-name" onclick="editStudentName(${student.id})">${escapeHtml(student.name)}</strong>
+                <strong class="student-name">${escapeHtml(student.name)}</strong>
               </div>
               ${deleteStudentBtn}
             </div>
@@ -610,7 +551,7 @@
                 onclick="toggleToken(${student.id}, '${act.id}')"
                 ${!isTeacher ? 'disabled' : ''}
               >
-                ${act.token}
+                ${act.token || '⭐'}
               </button>
             </td>
           `;
@@ -630,6 +571,105 @@
       });
 
       renderResources();
+    }
+
+    function toggleToken(studentId, actId) {
+      if (!isTeacher) return;
+      const key = `${studentId}_${actId}`;
+      if (!state.completions) state.completions = {};
+      state.completions[key] = !state.completions[key];
+      saveState();
+    }
+
+    function addSection() {
+      const input = document.getElementById('new-section-name');
+      const name = input.value.trim();
+      if (!name) return alert("Please enter section name.");
+
+      if (!state.sections) state.sections = [];
+      state.sections.push({
+        id: 'sec_' + Date.now(),
+        name: name
+      });
+      input.value = '';
+      saveState();
+    }
+
+    function renameSection(e, secId) {
+      e.stopPropagation();
+      const sec = state.sections.find(s => s.id === secId);
+      if (!sec) return;
+      const newName = prompt("Enter new section name:", sec.name);
+      if (newName && newName.trim() !== "") {
+        sec.name = newName.trim();
+        saveState();
+      }
+    }
+
+    function deleteSection(e, secId) {
+      e.stopPropagation();
+      if (!confirm("Delete this section and all associated student data?")) return;
+      state.sections = state.sections.filter(s => s.id !== secId);
+      saveState();
+    }
+
+    function addStudent() {
+      if (!currentSection) return;
+      const input = document.getElementById('new-student-name');
+      const name = input.value.trim();
+      if (!name) return alert("Please enter student name.");
+
+      if (!state.students) state.students = [];
+      state.students.push({
+        id: Date.now(),
+        sectionId: currentSection.id,
+        name: name,
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60'
+      });
+      input.value = '';
+      saveState();
+    }
+
+    function deleteStudent(studentId) {
+      if (!confirm("Delete this student?")) return;
+      state.students = state.students.filter(s => s.id !== studentId);
+      saveState();
+    }
+
+    function assignActivity() {
+      if (!currentSection) return;
+      const label = document.getElementById('new-act-label').value.trim() || 'Act #1';
+      const title = document.getElementById('new-act-title').value.trim();
+      const date = document.getElementById('new-act-date').value;
+      const link = document.getElementById('new-act-link').value.trim();
+      const token = document.getElementById('new-act-token').value;
+      const desc = document.getElementById('new-act-desc').value.trim();
+
+      if (!title) return alert("Please provide activity title.");
+
+      if (!state.activities) state.activities = [];
+      state.activities.push({
+        id: 'act_' + Date.now(),
+        sectionId: currentSection.id,
+        term: currentTerm,
+        label: label,
+        title: title,
+        date: date,
+        link: link,
+        token: token,
+        description: desc
+      });
+
+      document.getElementById('new-act-title').value = '';
+      document.getElementById('new-act-link').value = '';
+      document.getElementById('new-act-desc').value = '';
+      saveState();
+    }
+
+    function deleteActivity(actId) {
+      if (!confirm("Delete this activity task?")) return;
+      state.activities = state.activities.filter(a => a.id !== actId);
+      saveState();
     }
 
     function renderResources() {
@@ -660,197 +700,6 @@
         `;
         list.appendChild(item);
       });
-    }
-
-    async function addSection() {
-      const nameInput = document.getElementById('new-section-name');
-      const fileInput = document.getElementById('new-section-cover-file');
-      
-      if (!nameInput.value.trim()) { alert("Please enter section name!"); return; }
-
-      let coverUrl = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&auto=format&fit=crop&q=60";
-      if (fileInput.files && fileInput.files[0]) {
-        coverUrl = await uploadToStorage(fileInput.files[0], `covers/${Date.now()}_${fileInput.files[0].name}`);
-      }
-
-      if (!state.sections) state.sections = [];
-      state.sections.push({
-        id: 'sec_' + Date.now(),
-        name: nameInput.value.trim(),
-        cover: coverUrl,
-        coverY: 50
-      });
-
-      nameInput.value = '';
-      fileInput.value = '';
-      document.getElementById('section-cover-label').innerText = '📷 Upload Cover';
-      saveState();
-    }
-
-    async function addStudent() {
-      if (!currentSection) return;
-      const nameInput = document.getElementById('new-student-name');
-      const fileInput = document.getElementById('new-student-avatar-file');
-
-      if (!nameInput.value.trim()) { alert("Please enter student name!"); return; }
-
-      let avatarUrl = "https://via.placeholder.com/150";
-      if (fileInput.files && fileInput.files[0]) {
-        avatarUrl = await uploadToStorage(fileInput.files[0], `avatars/${Date.now()}_${fileInput.files[0].name}`);
-      }
-
-      if (!state.students) state.students = [];
-      state.students.push({
-        id: Date.now(),
-        sectionId: currentSection.id,
-        name: nameInput.value.trim(),
-        avatar: avatarUrl
-      });
-
-      nameInput.value = '';
-      fileInput.value = '';
-      document.getElementById('student-avatar-label').innerText = '👤 Photo (Optional)';
-      saveState();
-    }
-
-    function assignActivity() {
-      if (!currentSection) return;
-      const label = document.getElementById('new-act-label').value.trim();
-      const title = document.getElementById('new-act-title').value.trim();
-      const date = document.getElementById('new-act-date').value;
-      const link = document.getElementById('new-act-link').value.trim();
-      const token = document.getElementById('new-act-token').value;
-      const desc = document.getElementById('new-act-desc').value.trim();
-
-      if (!title) { alert("Please enter Activity Title!"); return; }
-
-      if (!state.activities) state.activities = [];
-      state.activities.push({
-        id: 'act_' + Date.now(),
-        sectionId: currentSection.id,
-        term: currentTerm,
-        label: label || 'Act #' + (state.activities.length + 1),
-        title: title,
-        date: date,
-        link: link,
-        token: token,
-        description: desc
-      });
-
-      document.getElementById('new-act-title').value = '';
-      document.getElementById('new-act-link').value = '';
-      document.getElementById('new-act-desc').value = '';
-      saveState();
-    }
-
-    function toggleToken(studentId, actId) {
-      if (!isTeacher) return;
-      const key = `${studentId}_${actId}`;
-      if (!state.completions) state.completions = {};
-      state.completions[key] = !state.completions[key];
-      saveState();
-    }
-
-    async function handleBannerFileSelect(e) {
-      if (e.target.files && e.target.files[0]) {
-        state.banner = await uploadToStorage(e.target.files[0], `banners/${Date.now()}_${e.target.files[0].name}`);
-        saveState();
-      }
-    }
-
-    async function handleCoverFileSelect(e) {
-      if (e.target.files && e.target.files[0] && activeEditingSectionId) {
-        const sec = state.sections.find(s => s.id === activeEditingSectionId);
-        if (sec) {
-          sec.cover = await uploadToStorage(e.target.files[0], `covers/${Date.now()}_${e.target.files[0].name}`);
-          saveState();
-        }
-      }
-    }
-
-    async function handleAvatarFileSelect(e) {
-      if (e.target.files && e.target.files[0] && activeEditingStudentId) {
-        const student = state.students.find(s => s.id === activeEditingStudentId);
-        if (student) {
-          student.avatar = await uploadToStorage(e.target.files[0], `avatars/${Date.now()}_${e.target.files[0].name}`);
-          saveState();
-        }
-      }
-    }
-
-    function triggerCoverChange(e, secId) {
-      e.stopPropagation();
-      activeEditingSectionId = secId;
-      document.getElementById('global-cover-picker').click();
-    }
-
-    function triggerAvatarChange(studentId) {
-      if (!isTeacher) return;
-      activeEditingStudentId = studentId;
-      document.getElementById('global-avatar-picker').click();
-    }
-
-    function adjustBannerY() {
-      const current = state.bannerY || 50;
-      const updated = prompt("Set Banner Vertical Alignment (0 = Top, 50 = Center, 100 = Bottom):", current);
-      if (updated !== null && !isNaN(updated)) {
-        state.bannerY = Math.min(100, Math.max(0, parseInt(updated)));
-        saveState();
-      }
-    }
-
-    function adjustCoverY(e, secId) {
-      e.stopPropagation();
-      const sec = state.sections.find(s => s.id === secId);
-      if (!sec) return;
-      const updated = prompt("Set Card Cover Vertical Alignment (0 = Top, 50 = Center, 100 = Bottom):", sec.coverY || 50);
-      if (updated !== null && !isNaN(updated)) {
-        sec.coverY = Math.min(100, Math.max(0, parseInt(updated)));
-        saveState();
-      }
-    }
-
-    function renameSection(e, secId) {
-      e.stopPropagation();
-      const sec = state.sections.find(s => s.id === secId);
-      if (!sec) return;
-      const updated = prompt("Rename Section:", sec.name);
-      if (updated && updated.trim()) {
-        sec.name = updated.trim();
-        saveState();
-      }
-    }
-
-    function deleteSection(e, secId) {
-      e.stopPropagation();
-      if (!confirm("Are you sure you want to delete this section and all its contents?")) return;
-      state.sections = state.sections.filter(s => s.id !== secId);
-      state.students = state.students.filter(s => s.sectionId !== secId);
-      state.activities = state.activities.filter(a => a.sectionId !== secId);
-      saveState();
-    }
-
-    function editStudentName(studentId) {
-      if (!isTeacher) return;
-      const student = state.students.find(s => s.id === studentId);
-      if (!student) return;
-      const updated = prompt("Rename Student:", student.name);
-      if (updated && updated.trim()) {
-        student.name = updated.trim();
-        saveState();
-      }
-    }
-
-    function deleteStudent(studentId) {
-      if (!confirm("Remove student from section?")) return;
-      state.students = state.students.filter(s => s.id !== studentId);
-      saveState();
-    }
-
-    function deleteActivity(actId) {
-      if (!confirm("Delete activity entry?")) return;
-      state.activities = state.activities.filter(a => a.id !== actId);
-      saveState();
     }
 
     function addResource() {
@@ -910,48 +759,6 @@
 
     function closeModal() {
       document.getElementById('act-modal').style.display = 'none';
-    }
-
-    function editActivity(actId) {
-      if (!isTeacher) return;
-      const act = state.activities.find(a => a.id === actId);
-      if (!act) return;
-
-      const newLabel = prompt("Edit Activity Label (e.g., Act #1, Quiz 1):", act.label || "Act #1");
-      if (newLabel === null) return;
-
-      const newTitle = prompt("Edit Activity Full Title:", act.title);
-      if (newTitle === null) return;
-
-      const newDate = prompt("Edit Date (YYYY-MM-DD):", act.date || "");
-      if (newDate === null) return;
-
-      const newLink = prompt("Edit URL Link:", act.link || "");
-      if (newLink === null) return;
-
-      const newDesc = prompt("Edit Description / Instructions:", act.description || "");
-      if (newDesc === null) return;
-
-      const newToken = prompt("Edit Token Icon:", act.token || "⭐");
-
-      act.label = newLabel.trim() || act.label;
-      act.title = newTitle.trim() || act.title;
-      act.date = newDate.trim();
-      act.link = newLink.trim();
-      act.description = newDesc.trim();
-      if (newToken) act.token = newToken.trim();
-
-      saveState();
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
     }
   </script>
 </body>
