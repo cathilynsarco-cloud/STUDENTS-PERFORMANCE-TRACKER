@@ -3,316 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Math 7 Classroom Hub</title>
+  <title>Math 7 Teacher Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --danger: #ef4444;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 4rem; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
-
-    /* HEADER BANNER */
-    .header-banner {
-      width: 100%; height: 230px; background-size: cover; background-position: center 50%;
-      position: relative; background-color: #6366f1; margin-bottom: 2rem;
-      display: flex; align-items: flex-end; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    .banner-overlay {
-      width: 100%; padding: 1.5rem 0; background: linear-gradient(transparent, rgba(15,23,42,0.85));
-      color: white;
-    }
-    .banner-content {
-      display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;
-    }
-
-    .mode-badge {
-      padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
-      display: inline-flex; align-items: center; gap: 0.4rem;
-    }
-    .mode-teacher { background: #e0e7ff; color: #3730a3; }
-    .mode-student { background: #dcfce7; color: #166534; }
-
-    .btn {
-      padding: 0.6rem 1rem; background: var(--primary); color: white; border: none;
-      border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
-    }
-    .btn:hover { background: var(--primary-hover); }
-    .btn-secondary { background: #cbd5e1; color: #334155; }
-    .btn-secondary:hover { background: #94a3b8; }
-
-    .banner-edit-controls {
-      position: absolute; top: 15px; right: 15px; display: none; gap: 0.5rem;
-    }
-    body.teacher-mode .banner-edit-controls { display: flex; }
-    .banner-btn {
-      background: rgba(0,0,0,0.7); color: white; border: none; padding: 0.4rem 0.7rem;
-      border-radius: 8px; font-size: 0.8rem; cursor: pointer;
-    }
-
-    .editable-heading { cursor: default; }
-    body.teacher-mode .editable-heading { cursor: pointer; border-bottom: 2px dashed rgba(255,255,255,0.6); }
-
-    /* GRID & CARDS */
-    .grid-container {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;
-    }
-    .section-card {
-      background: var(--card); border-radius: 16px; border: 1px solid var(--border);
-      overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative;
-    }
-    .section-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-    .card-cover { height: 130px; background-size: cover; background-position: center 50%; position: relative; background-color: #cbd5e1; }
-    .card-body { padding: 1.25rem; }
-    .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.4rem; }
-    .card-meta { font-size: 0.85rem; color: var(--muted); }
-
-    .card-actions { position: absolute; top: 10px; right: 10px; display: none; gap: 0.3rem; flex-wrap: wrap; }
-    body.teacher-mode .card-actions { display: flex; }
-    .action-badge-btn {
-      background: rgba(0,0,0,0.7); color: white; border: none; padding: 0.3rem 0.5rem;
-      border-radius: 6px; font-size: 0.75rem; cursor: pointer;
-    }
-
-    /* TEACHER PANEL */
-    .teacher-panel {
-      background: var(--card); padding: 1.25rem; border-radius: 12px;
-      border: 1px solid var(--border); margin-bottom: 1.5rem; display: none;
-    }
-    body.teacher-mode .teacher-panel { display: block; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; align-items: center; }
-    input, select, textarea { padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem; }
-    textarea { resize: vertical; min-height: 60px; }
-
-    .file-input-wrapper { position: relative; display: inline-block; width: 100%; }
-    .file-input-label {
-      display: block; padding: 0.6rem 0.8rem; background: #f1f5f9; border: 1px dashed var(--border);
-      border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.85rem; color: var(--muted);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .file-input-wrapper input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-
-    /* TERM TABS */
-    .term-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-    .term-tab {
-      padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px;
-      background: var(--card); font-weight: 600; font-size: 0.85rem; cursor: pointer; color: var(--muted); transition: all 0.2s;
-    }
-    .term-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-    /* TABLE SCROLLING & STICKY COLUMNS */
-    .table-wrapper { overflow: auto; max-height: 70vh; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    th, td { padding: 0.55rem 0.4rem; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; }
-
-    th {
-      background: #f1f5f9; font-size: 0.75rem; color: var(--muted); text-transform: uppercase;
-      position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    th:first-child, td:first-child {
-      position: sticky; left: 0; z-index: 3; background: var(--card);
-      border-right: 2px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-      width: 140px !important; min-width: 140px !important; max-width: 140px !important;
-    }
-
-    th:first-child { background: #f1f5f9; z-index: 11; }
-    th:not(:first-child), td:not(:first-child) { min-width: 75px; max-width: 110px; }
-
-    .student-info { display: flex; align-items: center; gap: 0.35rem; text-align: left; }
-    .student-name { cursor: default; font-size: 0.78rem; line-height: 1.1; word-break: break-word; }
-    body.teacher-mode .student-name { cursor: pointer; text-decoration: underline dotted var(--primary); }
-    .avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; flex-shrink: 0; cursor: pointer; }
-    .avatar:hover { opacity: 0.8; border-color: var(--primary); }
-
-    .act-header-wrapper { cursor: pointer; display: block; color: inherit; text-decoration: none; padding: 0.2rem; border-radius: 6px; }
-    .act-header-wrapper:hover { background: #e2e8f0; }
-    .act-title-text { 
-      font-size: 0.7rem; color: var(--primary); font-weight: bold; text-transform: none; 
-      margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
-    }
-
-    .status-cell { 
-      font-size: 0.75rem; color: #15803d; font-weight: 600; font-style: italic; 
-      cursor: default; line-height: 1.1; word-break: break-word; min-width: 110px; 
-    }
-    body.teacher-mode .status-cell { cursor: pointer; text-decoration: underline dotted var(--primary); }
-
-    .token-btn {
-      background: none; border: none; font-size: 1.3rem; cursor: pointer;
-      transition: transform 0.15s; opacity: 1 !important; filter: none !important;
-      color: initial !important; -webkit-text-fill-color: initial !important;
-    }
-    .token-btn:hover { transform: scale(1.2); }
-    .token-btn.empty { opacity: 0.18 !important; filter: grayscale(100%) !important; }
-    .token-btn:disabled { 
-      cursor: default; opacity: 1 !important; filter: none !important; 
-      color: initial !important; -webkit-text-fill-color: initial !important; 
-    }
-    .token-btn.empty:disabled { opacity: 0.18 !important; filter: grayscale(100%) !important; }
-
-    .icon-btn-sm { background: none; border: none; cursor: pointer; font-size: 0.7rem; opacity: 0.7; margin: 0 1px; }
-    .icon-btn-sm:hover { opacity: 1; }
-    .nav-breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
-
-    .resources-section {
-      margin-top: 2rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 1.25rem;
-    }
-    .resource-card {
-      background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; margin-top: 0.75rem;
-      display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-    }
-
-    .modal-backdrop {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.6);
-      display: none; justify-content: center; align-items: center; z-index: 100; padding: 1rem;
-    }
-    .modal-box {
-      background: var(--card); border-radius: 16px; width: 100%; max-width: 500px; padding: 1.5rem;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;
-    }
-    .modal-close {
-      position: absolute; top: 12px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted);
-    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
-<body>
+<body class="bg-slate-100 font-sans antialiased text-slate-800 min-h-screen flex flex-col">
 
-  <!-- HIDDEN FILE INPUTS -->
-  <input type="file" id="global-banner-picker" accept="image/*" style="display:none;" onchange="handleBannerFileSelect(event)" />
-  <input type="file" id="global-cover-picker" accept="image/*" style="display:none;" onchange="handleCoverFileSelect(event)" />
-  <input type="file" id="global-avatar-picker" accept="image/*" style="display:none;" onchange="handleAvatarFileSelect(event)" />
-
-  <!-- HEADER BANNER -->
-  <div class="header-banner" id="main-banner">
-    <div class="banner-edit-controls">
-      <button class="banner-btn" onclick="document.getElementById('global-banner-picker').click()">📷 Photo</button>
-      <button class="banner-btn" onclick="adjustBannerY()">↕️ Adjust Frame</button>
+  <!-- TOP HEADER / NAVBAR -->
+  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid font-bold fa-calculator text-2xl text-indigo-200"></i>
+        <h1 class="text-xl font-bold tracking-wide">Math 7 Class Portal</h1>
+      </div>
+      <div id="save-status" class="text-xs bg-indigo-800 px-3 py-1 rounded-full text-indigo-200 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-green-400"></span> Connected
+      </div>
     </div>
-    <div class="banner-overlay">
-      <div class="container banner-content">
-        <div>
-          <h1 id="banner-heading-text" class="editable-heading" onclick="editHeadingText()" style="font-size: 2rem;">📐 Math 7 Activity Hub</h1>
-          <p style="opacity: 0.9; font-size: 0.95rem;">Track math progress, performance tasks, and earn rewards!</p>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-grow grid grid-cols-1 md:grid-cols-4 gap-6">
+
+    <!-- SIDEBAR: SECTIONS -->
+    <aside class="md:col-span-1 bg-white p-4 rounded-xl shadow-sm border border-slate-200 h-fit">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-slate-700 text-lg">Sections</h2>
+        <button onclick="addSection()" class="text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded-lg transition">
+          + Add
+        </button>
+      </div>
+      <div id="sections-list" class="space-y-2">
+        <!-- Rendered by JS -->
+      </div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <section class="md:col-span-3 space-y-6">
+
+      <!-- BANNER / TITLE CARD -->
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-xs font-semibold tracking-wider text-indigo-600 uppercase">Grade 7 Mathematics</span>
+            <h2 id="active-section-title" class="text-2xl font-extrabold text-slate-800 mt-1">Select a Section</h2>
+            <p id="active-section-desc" class="text-sm text-slate-500 mt-1">Manage your students, grading, and activities below.</p>
+          </div>
+          <button onclick="deleteActiveSection()" class="text-xs text-rose-500 hover:text-rose-700 font-medium">Delete Section</button>
         </div>
-        <div>
-          <span id="mode-indicator" class="mode-badge mode-student">👀 Student View</span>
-          <button class="btn" id="toggle-mode-btn" onclick="toggleMode()" style="margin-left:0.5rem;">🔑 Teacher Login</button>
+      </div>
+
+      <!-- TAB NAVIGATION -->
+      <div class="border-b border-slate-200 flex space-x-4">
+        <button id="tab-btn-students" onclick="switchTab('students')" class="pb-2 border-b-2 font-semibold text-sm border-indigo-600 text-indigo-600">
+          <i class="fa-solid fa-users mr-1.5"></i> Students (<span id="student-count">0</span>)
+        </button>
+        <button id="tab-btn-activities" onclick="switchTab('activities')" class="pb-2 border-b-2 font-semibold text-sm border-transparent text-slate-500 hover:text-slate-700">
+          <i class="fa-solid fa-list-check mr-1.5"></i> Activities & Grades
+        </button>
+      </div>
+
+      <!-- TAB 1: STUDENTS PANEL -->
+      <div id="tab-students" class="space-y-4">
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <input type="text" id="student-search" oninput="render()" placeholder="Search student name..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <button onclick="addStudent()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition shadow-sm">
+            + Add Student
+          </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+              <tr>
+                <th class="p-3">LRN / ID</th>
+                <th class="p-3">Name</th>
+                <th class="p-3 text-center">Gender</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body" class="divide-y divide-slate-100">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="container">
-    <div class="nav-breadcrumb" id="breadcrumb" style="display: none;">
-      <button class="btn btn-secondary" onclick="showHome()">← Back to Sections</button>
-      <h2 id="active-section-title" style="font-size: 1.3rem;"></h2>
-    </div>
-
-    <!-- TEACHER CONTROLS PANEL -->
-    <div class="teacher-panel">
-      <h3 style="margin-bottom: 0.75rem;">✏️ Teacher Controls</h3>
-      
-      <div class="form-grid" id="form-add-section" style="margin-bottom: 1rem;">
-        <input type="text" id="new-section-name" placeholder="New Section Name" />
-        <div class="file-input-wrapper">
-          <span class="file-input-label" id="section-cover-label">📷 Upload Cover</span>
-          <input type="file" id="new-section-cover-file" accept="image/*" onchange="updateLabel(this, 'section-cover-label')" />
+      <!-- TAB 2: ACTIVITIES PANEL -->
+      <div id="tab-activities" class="hidden space-y-4">
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-slate-700">Class Activities & Quizzes</h3>
+          <button onclick="addActivity()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition shadow-sm">
+            + Create Activity
+          </button>
         </div>
-        <button class="btn" onclick="addSection()">+ Add Section</button>
-      </div>
 
-      <div class="form-grid" id="form-section-controls" style="display: none;">
-        <input type="text" id="new-student-name" placeholder="Student Name" />
-        <div class="file-input-wrapper">
-          <span class="file-input-label" id="student-avatar-label">👤 Photo (Optional)</span>
-          <input type="file" id="new-student-avatar-file" accept="image/*" onchange="updateLabel(this, 'student-avatar-label')" />
+        <div id="activities-list" class="space-y-3">
+          <!-- Rendered by JS -->
         </div>
-        <button class="btn" onclick="addStudent()">+ Add Student</button>
-        
-        <div style="grid-column: 1 / -1; height: 1px; background: var(--border); margin: 0.25rem 0;"></div>
-        
-        <input type="text" id="new-act-label" placeholder="Header (e.g. Act #1, Quiz 1)" value="Act #1" />
-        <input type="text" id="new-act-title" placeholder="Full Task Title" />
-        <input type="date" id="new-act-date" title="Activity Date" />
-        <input type="url" id="new-act-link" placeholder="Attachment/Drive Link" />
-        <select id="new-act-token">
-          <option value="⭐">⭐ Star</option>
-          <option value="🏆">🏆 Trophy</option>
-          <option value="🎨">🎨 Palette</option>
-          <option value="🏅">🏅 Medal</option>
-          <option value="🚀">🚀 Rocket</option>
-        </select>
-        <textarea id="new-act-desc" placeholder="Complete activity description / instructions..." style="grid-column: 1 / -1;"></textarea>
-        <button class="btn" style="grid-column: 1 / -1;" onclick="assignActivity()">+ Assign Activity Task</button>
-      </div>
-    </div>
-
-    <!-- HOME VIEW -->
-    <div id="home-view">
-      <h3 style="margin-bottom: 1rem; color: var(--muted);">Select Your Math Section</h3>
-      <div class="grid-container" id="sections-grid"></div>
-    </div>
-
-    <!-- SECTION DETAILS VIEW -->
-    <div id="section-view" style="display: none;">
-      <div class="term-tabs">
-        <button class="term-tab active" id="term-1-btn" onclick="switchTerm(1)">Term 1</button>
-        <button class="term-tab" id="term-2-btn" onclick="switchTerm(2)">Term 2</button>
-        <button class="term-tab" id="term-3-btn" onclick="switchTerm(3)">Term 3</button>
       </div>
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr id="table-header">
-              <th>Student</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
+    </section>
 
-      <div class="resources-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-          <h3>📚 Lesson Notes & Learning Attachments</h3>
-          <button class="btn" style="display:none;" id="add-resource-btn" onclick="addResource()">+ Add Resource</button>
-        </div>
-        <p style="font-size: 0.85rem; color: var(--muted);">Access supplementary math guides, lectures, and download links below.</p>
-        <div id="resources-list"></div>
-      </div>
-    </div>
-  </div>
+  </main>
 
-  <!-- ACTIVITY POP-UP MODAL -->
-  <div class="modal-backdrop" id="act-modal">
-    <div class="modal-box">
-      <button class="modal-close" onclick="closeModal()">×</button>
-      <div id="modal-label" style="font-size: 0.8rem; font-weight: bold; color: var(--primary); text-transform: uppercase;"></div>
-      <h2 id="modal-title" style="margin: 0.25rem 0 0.5rem 0; font-size: 1.4rem;"></h2>
-      <div id="modal-date" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem;"></div>
-      <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.2rem;">Instructions & Details:</p>
-      <div id="modal-desc" style="font-size: 0.95rem; line-height: 1.5; background: #f8fafc; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border); white-space: pre-wrap; margin-bottom: 1.25rem;"></div>
-      <div id="modal-link-container"></div>
-    </div>
-  </div>
-
-  <!-- FIREBASE SCRIPTS -->
+  <!-- FIREBASE COMPAT LIBRARIES FOR FIRESTORE -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // UPDATED FIREBASE CONFIGURATION FOR MATH7 DATABASE
+    // -------------------------------------------------------------
+    // FIREBASE CONFIGURATION (math7-database-26)
+    // -------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyA0Yez-NLfbhU2Zj7CqeyNAgJ-vOQYVlvw",
       authDomain: "math7-database-26.firebaseapp.com",
@@ -323,610 +133,273 @@
       appId: "1:1057749107077:web:aae6d67955e0ba75f0c4ec"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    // UNIQUE DOCUMENT STORAGE REFERENCE TO PREVENT DATA OVERWRITE
+
+    // Isolated database document path for Math 7
     const docRef = db.collection('dashboard').doc('state_math7');
 
-    const TEACHER_PASS = "121488";
-    let isTeacher = false;
-    let currentSection = null;
-    let currentTerm = 1;
-    let activeEditingStudentId = null;
-    let activeEditingSectionId = null;
-
+    // -------------------------------------------------------------
+    // APPLICATION STATE
+    // -------------------------------------------------------------
     let state = {
-      headingText: "📐 Math 7 Activity Hub",
-      banner: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=1200&auto=format&fit=crop&q=60",
-      bannerY: 50,
-      sections: [],
-      students: [],
-      activities: [],
-      completions: {},
-      remarks: {},
-      resources: []
+      activeSectionId: null,
+      activeTab: 'students',
+      sections: [
+        {
+          id: 'sec_1',
+          name: 'Section 7-A (Euler)',
+          students: [
+            { id: 'st_1', lrn: '10982374001', name: 'Santos, Maria', gender: 'F' },
+            { id: 'st_2', lrn: '10982374002', name: 'Reyes, Juan', gender: 'M' }
+          ],
+          activities: [
+            { id: 'act_1', title: 'Quiz 1: Integer Operations', maxScore: 20 }
+          ]
+        }
+      ]
     };
 
+    // -------------------------------------------------------------
+    // FIRESTORE REALTIME SYNC
+    // -------------------------------------------------------------
     docRef.onSnapshot((doc) => {
+      const statusEl = document.getElementById('save-status');
       if (doc.exists) {
         state = Object.assign({}, state, doc.data());
+        if (!state.activeSectionId && state.sections.length > 0) {
+          state.activeSectionId = state.sections[0].id;
+        }
         render();
+        statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400"></span> Synced`;
       } else {
+        // Initial setup if Firestore document does not exist yet
         saveState();
       }
+    }, (error) => {
+      console.error("Firestore sync error:", error);
+      document.getElementById('save-status').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> Error`;
     });
 
+    // Save changes to Cloud Firestore safely
     function saveState() {
-      docRef.set(state).catch(err => {
-        console.error("Firestore Save Error: ", err);
-        alert("Failed to save changes! The uploaded image might be too large for Firestore.");
-      });
+      const statusEl = document.getElementById('save-status');
+      statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Saving...`;
+
+      // Clean image files or heavy objects if needed to prevent 1MB overflow
+      docRef.set(state)
+        .then(() => {
+          statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400"></span> Saved`;
+        })
+        .catch((error) => {
+          console.error("Database Save Error: ", error);
+          alert("Failed to save changes! Check browser console (F12) or Firestore Rules.");
+          statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> Save Failed`;
+        });
     }
 
-    function processAndCompressImage(file, maxWidth = 1200, quality = 0.7) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-          const img = new Image();
-          img.src = event.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-
-            if (width > maxWidth) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            resolve(canvas.toDataURL('image/jpeg', quality));
-          };
-          img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
-      });
-    }
-
-    function toggleMode() {
-      if (!isTeacher) {
-        const pass = prompt("Enter Teacher Passcode:");
-        if (pass === TEACHER_PASS) {
-          isTeacher = true;
-          document.body.classList.add('teacher-mode');
-          document.getElementById('mode-indicator').className = "mode-badge mode-teacher";
-          document.getElementById('mode-indicator').innerText = "✏️ Teacher Mode";
-          document.getElementById('toggle-mode-btn').innerText = "🔒 Exit Teacher Mode";
-          document.getElementById('add-resource-btn').style.display = "block";
-        } else if (pass !== null) {
-          alert("Incorrect Passcode!");
-        }
-      } else {
-        isTeacher = false;
-        document.body.classList.remove('teacher-mode');
-        document.getElementById('mode-indicator').className = "mode-badge mode-student";
-        document.getElementById('mode-indicator').innerText = "👀 Student View";
-        document.getElementById('toggle-mode-btn').innerText = "🔑 Teacher Login";
-        document.getElementById('add-resource-btn').style.display = "none";
-      }
+    // -------------------------------------------------------------
+    // UI CORE ACTIONS
+    // -------------------------------------------------------------
+    function switchTab(tab) {
+      state.activeTab = tab;
       render();
     }
 
-    function editHeadingText() {
-      if (!isTeacher) return;
-      const current = state.headingText || "📐 Math 7 Activity Hub";
-      const updated = prompt("Edit Main Hub Heading:", current);
-      if (updated && updated.trim() !== "") {
-        state.headingText = updated.trim();
-        saveState();
-      }
+    function selectSection(id) {
+      state.activeSectionId = id;
+      render();
     }
 
-    function switchTerm(termNumber) {
-      currentTerm = termNumber;
-      [1, 2, 3].forEach(t => {
-        const btn = document.getElementById(`term-${t}-btn`);
-        if (t === termNumber) btn.classList.add('active');
-        else btn.classList.remove('active');
-      });
-      renderSectionTable();
-    }
-
-    function updateLabel(input, labelId) {
-      if (input.files && input.files[0]) {
-        document.getElementById(labelId).innerText = "📷 " + input.files[0].name;
-      }
-    }
-
-    function renderHome() {
-      const bannerEl = document.getElementById('main-banner');
-      if (state.banner) bannerEl.style.backgroundImage = `url('${state.banner}')`;
-      bannerEl.style.backgroundPositionY = `${state.bannerY || 50}%`;
-      document.getElementById('banner-heading-text').innerText = state.headingText || "📐 Math 7 Activity Hub";
-
-      const grid = document.getElementById('sections-grid');
-      grid.innerHTML = '';
-
-      if (!state.sections || state.sections.length === 0) {
-        grid.innerHTML = `<p style="color:var(--muted); font-style:italic; grid-column:1/-1;">No math sections created yet. Log in as Teacher to add a section!</p>`;
-        return;
-      }
-
-      (state.sections || []).forEach(sec => {
-        const studentCount = (state.students || []).filter(s => s.sectionId === sec.id).length;
-        const defaultCover = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&auto=format&fit=crop&q=60";
-        const posY = sec.coverY || 50;
-
-        const card = document.createElement('div');
-        card.className = 'section-card';
-        card.innerHTML = `
-          <div class="card-cover" style="background-image: url('${sec.cover || defaultCover}'); background-position-y: ${posY}%;">
-            <div class="card-actions">
-              <button class="action-badge-btn" onclick="renameSection(event, '${sec.id}')">✏️ Name</button>
-              <button class="action-badge-btn" onclick="triggerCoverChange(event, '${sec.id}')">📷 Cover</button>
-              <button class="action-badge-btn" onclick="adjustCoverY(event, '${sec.id}')">↕️ Frame</button>
-              <button class="action-badge-btn" style="background:var(--danger);" onclick="deleteSection(event, '${sec.id}')">🗑️</button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-title">${escapeHtml(sec.name)}</div>
-            <div class="card-meta">👥 ${studentCount} Students Enrolled</div>
-          </div>
-        `;
-        card.onclick = (e) => {
-          if (e.target.tagName !== 'BUTTON') openSection(sec.id);
-        };
-        grid.appendChild(card);
-      });
-    }
-
-    function openSection(secId) {
-      currentSection = (state.sections || []).find(s => s.id === secId);
-      document.getElementById('home-view').style.display = 'none';
-      document.getElementById('section-view').style.display = 'block';
-      document.getElementById('breadcrumb').style.display = 'flex';
-      document.getElementById('form-section-controls').style.display = 'grid';
-      document.getElementById('active-section-title').innerText = currentSection ? currentSection.name : '';
-      if (isTeacher) document.getElementById('add-resource-btn').style.display = "block";
-      switchTerm(1);
-    }
-
-    function showHome() {
-      currentSection = null;
-      document.getElementById('home-view').style.display = 'block';
-      document.getElementById('section-view').style.display = 'none';
-      document.getElementById('breadcrumb').style.display = 'none';
-      document.getElementById('form-section-controls').style.display = 'none';
-      renderHome();
-    }
-
-    function renderSectionTable() {
-      if (!currentSection) return;
-
-      const headerRow = document.getElementById('table-header');
-      const tbody = document.getElementById('table-body');
-
-      const students = (state.students || []).filter(s => s.sectionId === currentSection.id);
-      const activities = (state.activities || []).filter(a => 
-        a.sectionId === currentSection.id && (a.term === currentTerm || (!a.term && currentTerm === 1))
-      );
-
-      let headerHtml = `<th>Student</th>`;
-
-      activities.forEach((act, idx) => {
-        const actLabel = act.label || `Act #${idx + 1}`;
-        const dateBadge = act.date ? `<div style="font-size:0.65rem; color:var(--muted); font-weight:600;">📅 ${act.date}</div>` : '';
-
-        const teacherControls = isTeacher 
-          ? `<div style="margin-top:2px;">
-              <button class="icon-btn-sm" onclick="editActivity('${act.id}')">✏️</button>
-              <button class="icon-btn-sm" style="color:var(--danger);" onclick="deleteActivity('${act.id}')">🗑️</button>
-             </div>` 
-          : '';
-
-        headerHtml += `
-          <th>
-            <div class="act-header-wrapper" onclick="openModal('${act.id}')">
-              <div style="font-weight:bold; font-size:0.75rem; color: var(--text);">${escapeHtml(actLabel)} 🔍</div>
-              <div class="act-title-text" title="${escapeHtml(act.title)}">${escapeHtml(act.title)}</div>
-              ${dateBadge}
-            </div>
-            ${teacherControls}
-          </th>
-        `;
-      });
-
-      headerHtml += `<th>Status</th>`;
-      headerRow.innerHTML = headerHtml;
-
-      tbody.innerHTML = '';
-
-      if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${activities.length + 2}" style="padding:1.5rem; color:var(--muted); font-style:italic;">No students added to this section yet. Use Teacher Controls to add students.</td></tr>`;
-        return;
-      }
-
-      students.forEach(student => {
-        const tr = document.createElement('tr');
-        
-        const deleteStudentBtn = isTeacher 
-          ? `<button class="icon-btn-sm" style="color:var(--danger);" onclick="deleteStudent(${student.id})">🗑️</button>` 
-          : '';
-
-        let studentCell = `
-          <td>
-            <div class="student-info">
-              <img src="${student.avatar}" class="avatar" onclick="triggerAvatarChange(${student.id})" title="Click to upload profile photo" />
-              <div style="flex:1; min-width: 0;">
-                <strong class="student-name" onclick="editStudentName(${student.id})">${escapeHtml(student.name)}</strong>
-              </div>
-              ${deleteStudentBtn}
-            </div>
-          </td>
-        `;
-
-        let taskCells = activities.map(act => {
-          const key = `${student.id}_${act.id}`;
-          const isDone = !!(state.completions || {})[key];
-
-          return `
-            <td>
-              <button 
-                class="token-btn ${isDone ? '' : 'empty'}" 
-                onclick="toggleToken(${student.id}, '${act.id}')"
-                ${!isTeacher ? 'disabled' : ''}
-              >
-                ${act.token}
-              </button>
-            </td>
-          `;
-        }).join('');
-
-        const remarkKey = `${student.id}_term${currentTerm}`;
-        const currentRemark = (state.remarks || {})[remarkKey] || (isTeacher ? "Click to edit" : "—");
-
-        let statusCell = `
-          <td class="status-cell" onclick="editRemark(${student.id})">
-            <em>${escapeHtml(currentRemark)}</em>
-          </td>
-        `;
-
-        tr.innerHTML = studentCell + taskCells + statusCell;
-        tbody.appendChild(tr);
-      });
-
-      renderResources();
-    }
-
-    function renderResources() {
-      const list = document.getElementById('resources-list');
-      list.innerHTML = '';
-
-      const sectionResources = (state.resources || []).filter(r => r.sectionId === currentSection.id);
-      if (sectionResources.length === 0) {
-        list.innerHTML = `<p style="font-size:0.85rem; color:var(--muted); margin-top:0.5rem; font-style: italic;">No notes or attachments posted yet.</p>`;
-        return;
-      }
-
-      sectionResources.forEach(res => {
-        const deleteBtn = isTeacher ? `<button class="icon-btn-sm" style="color:var(--danger);" onclick="deleteResource('${res.id}')">🗑️ Remove</button>` : '';
-        const linkBtn = res.link ? `<a href="${res.link}" target="_blank" class="btn btn-secondary" style="font-size:0.75rem; padding:0.3rem 0.6rem;">📎 Open Link</a>` : '';
-
-        const item = document.createElement('div');
-        item.className = 'resource-card';
-        item.innerHTML = `
-          <div>
-            <div style="font-weight:bold; font-size:0.95rem;">${escapeHtml(res.title)}</div>
-            <p style="font-size:0.85rem; color:var(--text); margin-top:0.2rem;">${escapeHtml(res.note)}</p>
-          </div>
-          <div style="display:flex; align-items:center; gap:0.5rem;">
-            ${linkBtn}
-            ${deleteBtn}
-          </div>
-        `;
-        list.appendChild(item);
-      });
-    }
-
-    function addResource() {
-      if (!isTeacher || !currentSection) return;
-      const title = prompt("Enter Lesson Title (e.g. Integers Review):");
-      if (!title) return;
-      const note = prompt("Enter Short Note or Instructions:");
-      const link = prompt("Enter Resource URL / Drive Link (Optional):");
-
-      if (!state.resources) state.resources = [];
-      state.resources.push({
-        id: 'res_' + Date.now(),
-        sectionId: currentSection.id,
-        title: title.trim(),
-        note: (note || '').trim(),
-        link: (link || '').trim()
-      });
+    function addSection() {
+      const name = prompt("Enter new section name (e.g., Section 7-B):");
+      if (!name) return;
+      const newSec = {
+        id: 'sec_' + Date.now(),
+        name: name,
+        students: [],
+        activities: []
+      };
+      state.sections.push(newSec);
+      state.activeSectionId = newSec.id;
       saveState();
+      render();
     }
 
-    function deleteResource(resId) {
-      if (!confirm("Delete resource note?")) return;
-      state.resources = state.resources.filter(r => r.id !== resId);
-      saveState();
-    }
-
-    function editRemark(studentId) {
-      if (!isTeacher) return;
-      const remarkKey = `${studentId}_term${currentTerm}`;
-      const existing = (state.remarks || {})[remarkKey] || "";
-      const updated = prompt("Edit Status / Remark for this student:", existing);
-      if (updated !== null) {
-        if (!state.remarks) state.remarks = {};
-        state.remarks[remarkKey] = updated.trim();
-        saveState();
-      }
-    }
-
-    function openModal(actId) {
-      const act = (state.activities || []).find(a => a.id === actId);
-      if (!act) return;
-
-      document.getElementById('modal-label').innerText = act.label || "Activity Details";
-      document.getElementById('modal-title').innerText = act.title;
-      document.getElementById('modal-date').innerText = act.date ? `📅 Due/Assigned Date: ${act.date}` : '📅 No specific date set';
-      document.getElementById('modal-desc').innerText = act.description || "No specific instructions provided.";
+    function deleteActiveSection() {
+      if (!state.activeSectionId) return;
+      if (!confirm("Are you sure you want to delete this section and all its records?")) return;
       
-      const linkContainer = document.getElementById('modal-link-container');
-      if (act.link) {
-        linkContainer.innerHTML = `<a href="${act.link}" target="_blank" class="btn" style="display:inline-block; text-align:center; width:100%;">📎 View Attachment / Module Link</a>`;
-      } else {
-        linkContainer.innerHTML = '';
-      }
-
-      document.getElementById('act-modal').style.display = 'flex';
+      state.sections = state.sections.filter(s => s.id !== state.activeSectionId);
+      state.activeSectionId = state.sections.length > 0 ? state.sections[0].id : null;
+      saveState();
+      render();
     }
 
-    function closeModal() {
-      document.getElementById('act-modal').style.display = 'none';
-    }
+    function addStudent() {
+      const activeSec = getActiveSection();
+      if (!activeSec) return alert("Please select or create a section first.");
 
-    function editActivity(actId) {
-      if (!isTeacher) return;
-      const act = state.activities.find(a => a.id === actId);
-      if (!act) return;
+      const name = prompt("Enter Student Full Name (Last, First):");
+      if (!name) return;
+      const lrn = prompt("Enter Student LRN / ID Number:") || "N/A";
 
-      const newLabel = prompt("Edit Activity Label (e.g., Act #1, Quiz 1):", act.label || "Act #1");
-      if (newLabel === null) return;
-
-      const newTitle = prompt("Edit Activity Full Title:", act.title);
-      if (newTitle === null) return;
-
-      const newDate = prompt("Edit Date (YYYY-MM-DD):", act.date || "");
-      if (newDate === null) return;
-
-      const newLink = prompt("Edit URL Link:", act.link || "");
-      if (newLink === null) return;
-
-      const newDesc = prompt("Edit Description / Instructions:", act.description || "");
-      if (newDesc === null) return;
-
-      const newToken = prompt("Edit Token Icon:", act.token || "⭐");
-
-      act.label = newLabel.trim() || act.label;
-      act.title = newTitle.trim() || act.title;
-      act.date = newDate.trim();
-      act.link = newLink.trim();
-      act.description = newDesc.trim();
-      act.token = newToken.trim() || act.token;
+      activeSec.students.push({
+        id: 'st_' + Date.now(),
+        name: name,
+        lrn: lrn,
+        gender: 'M'
+      });
 
       saveState();
-    }
-
-    function adjustBannerY() {
-      const current = state.bannerY || 50;
-      const updated = prompt("Adjust vertical banner frame (0 = top, 50 = middle, 100 = bottom):", current);
-      if (updated !== null && !isNaN(updated)) {
-        state.bannerY = Math.min(100, Math.max(0, parseInt(updated)));
-        saveState();
-      }
-    }
-
-    function adjustCoverY(event, secId) {
-      event.stopPropagation();
-      const sec = state.sections.find(s => s.id === secId);
-      if (sec) {
-        const current = sec.coverY || 50;
-        const updated = prompt("Adjust vertical cover frame (0 = top, 50 = center, 100 = bottom):", current);
-        if (updated !== null && !isNaN(updated)) {
-          sec.coverY = Math.min(100, Math.max(0, parseInt(updated)));
-          saveState();
-        }
-      }
-    }
-
-    function editStudentName(studentId) {
-      if (!isTeacher) return;
-      const student = state.students.find(s => s.id === studentId);
-      if (student) {
-        const newName = prompt("Edit Student Name:", student.name);
-        if (newName && newName.trim() !== "") {
-          student.name = newName.trim();
-          saveState();
-        }
-      }
-    }
-
-    function renameSection(event, secId) {
-      event.stopPropagation();
-      const sec = state.sections.find(s => s.id === secId);
-      if (sec) {
-        const newName = prompt("Rename Section:", sec.name);
-        if (newName && newName.trim() !== "") {
-          sec.name = newName.trim();
-          saveState();
-        }
-      }
-    }
-
-    function toggleToken(studentId, actId) {
-      if (!isTeacher) return;
-      if (!state.completions) state.completions = {};
-      const key = `${studentId}_${actId}`;
-      state.completions[key] = !state.completions[key];
-      saveState();
-    }
-
-    async function handleBannerFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
-        try {
-          state.banner = await processAndCompressImage(file, 1200, 0.7);
-          saveState();
-        } catch(e) {
-          alert("Error processing image file.");
-        }
-      }
-      event.target.value = '';
-    }
-
-    async function addSection() {
-      const name = document.getElementById('new-section-name').value.trim();
-      const fileInput = document.getElementById('new-section-cover-file');
-      if (!name) return alert("Enter section name");
-
-      let cover = "";
-      if (fileInput.files && fileInput.files[0]) {
-        cover = await processAndCompressImage(fileInput.files[0], 600, 0.7);
-      }
-
-      if (!state.sections) state.sections = [];
-      state.sections.push({ id: 'sec_' + Date.now(), name, cover, coverY: 50 });
-      document.getElementById('new-section-name').value = '';
-      fileInput.value = '';
-      document.getElementById('section-cover-label').innerText = "📷 Upload Cover";
-      saveState();
-    }
-
-    function deleteSection(event, secId) {
-      event.stopPropagation();
-      if (confirm("Delete section and enrolled students?")) {
-        state.sections = state.sections.filter(s => s.id !== secId);
-        state.students = state.students.filter(s => s.sectionId !== secId);
-        saveState();
-      }
+      render();
     }
 
     function deleteStudent(studentId) {
-      if (confirm("Remove student?")) {
-        state.students = state.students.filter(s => s.id !== studentId);
-        saveState();
-      }
+      const activeSec = getActiveSection();
+      if (!activeSec) return;
+      activeSec.students = activeSec.students.filter(s => s.id !== studentId);
+      saveState();
+      render();
+    }
+
+    function addActivity() {
+      const activeSec = getActiveSection();
+      if (!activeSec) return alert("Please select or create a section first.");
+
+      const title = prompt("Enter Activity Title:");
+      if (!title) return;
+      const maxScore = parseInt(prompt("Enter Maximum Score:", "20")) || 20;
+
+      activeSec.activities.push({
+        id: 'act_' + Date.now(),
+        title: title,
+        maxScore: maxScore
+      });
+
+      saveState();
+      render();
     }
 
     function deleteActivity(actId) {
-      if (confirm("Delete activity?")) {
-        state.activities = state.activities.filter(a => a.id !== actId);
-        saveState();
-      }
-    }
-
-    function triggerCoverChange(event, secId) {
-      event.stopPropagation();
-      activeEditingSectionId = secId;
-      document.getElementById('global-cover-picker').click();
-    }
-
-    async function handleCoverFileSelect(event) {
-      const file = event.target.files[0];
-      if (file && activeEditingSectionId) {
-        const compressed = await processAndCompressImage(file, 600, 0.7);
-        const sec = state.sections.find(s => s.id === activeEditingSectionId);
-        if (sec) {
-          sec.cover = compressed;
-          saveState();
-        }
-      }
-      event.target.value = '';
-    }
-
-    function triggerAvatarChange(studentId) {
-      activeEditingStudentId = studentId;
-      document.getElementById('global-avatar-picker').click();
-    }
-
-    async function handleAvatarFileSelect(event) {
-      const file = event.target.files[0];
-      if (file && activeEditingStudentId) {
-        const compressed = await processAndCompressImage(file, 200, 0.7);
-        const student = state.students.find(s => s.id === activeEditingStudentId);
-        if (student) {
-          student.avatar = compressed;
-          saveState();
-        }
-      }
-      event.target.value = '';
-    }
-
-    async function addStudent() {
-      const name = document.getElementById('new-student-name').value.trim();
-      const fileInput = document.getElementById('new-student-avatar-file');
-      if (!name || !currentSection) return alert("Enter student name");
-
-      let avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-      if (fileInput.files && fileInput.files[0]) {
-        avatar = await processAndCompressImage(fileInput.files[0], 200, 0.7);
-      }
-
-      if (!state.students) state.students = [];
-      state.students.push({
-        id: Date.now(),
-        name,
-        sectionId: currentSection.id,
-        avatar
-      });
-
-      document.getElementById('new-student-name').value = '';
-      fileInput.value = '';
-      document.getElementById('student-avatar-label').innerText = "👤 Photo (Optional)";
+      const activeSec = getActiveSection();
+      if (!activeSec) return;
+      activeSec.activities = activeSec.activities.filter(a => a.id !== actId);
       saveState();
+      render();
     }
 
-    function assignActivity() {
-      const label = document.getElementById('new-act-label').value.trim() || 'Act #1';
-      const title = document.getElementById('new-act-title').value.trim();
-      const date = document.getElementById('new-act-date').value;
-      const link = document.getElementById('new-act-link').value.trim();
-      const desc = document.getElementById('new-act-desc').value.trim();
-      const token = document.getElementById('new-act-token').value;
-
-      if (!title || !currentSection) return alert("Enter activity title");
-
-      if (!state.activities) state.activities = [];
-      state.activities.push({
-        id: 'act_' + Date.now(),
-        label, title, date, link, description: desc, token,
-        sectionId: currentSection.id,
-        term: currentTerm
-      });
-
-      document.getElementById('new-act-title').value = '';
-      document.getElementById('new-act-date').value = '';
-      document.getElementById('new-act-link').value = '';
-      document.getElementById('new-act-desc').value = '';
-      saveState();
+    function getActiveSection() {
+      return state.sections.find(s => s.id === state.activeSectionId);
     }
 
-    function escapeHtml(text) {
-      return (text || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
+    // -------------------------------------------------------------
+    // RENDER FUNCTION
+    // -------------------------------------------------------------
     function render() {
-      if (currentSection) renderSectionTable();
-      else renderHome();
+      // 1. Render Sections List
+      const sectionsContainer = document.getElementById('sections-list');
+      sectionsContainer.innerHTML = '';
+
+      if (state.sections.length === 0) {
+        sectionsContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No sections created yet.</p>`;
+      } else {
+        state.sections.forEach(sec => {
+          const isActive = sec.id === state.activeSectionId;
+          const btn = document.createElement('button');
+          btn.className = `w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition flex justify-between items-center ${
+            isActive 
+              ? 'bg-indigo-600 text-white shadow-sm' 
+              : 'text-slate-600 hover:bg-slate-100'
+          }`;
+          btn.onclick = () => selectSection(sec.id);
+          btn.innerHTML = `
+            <span class="truncate">${sec.name}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-600'}">${sec.students.length}</span>
+          `;
+          sectionsContainer.appendChild(btn);
+        });
+      }
+
+      // 2. Active Section Info
+      const activeSec = getActiveSection();
+      if (activeSec) {
+        document.getElementById('active-section-title').textContent = activeSec.name;
+        document.getElementById('active-section-desc').textContent = `${activeSec.students.length} Students | ${activeSec.activities.length} Recorded Activities`;
+        document.getElementById('student-count').textContent = activeSec.students.length;
+      } else {
+        document.getElementById('active-section-title').textContent = "No Active Section";
+        document.getElementById('active-section-desc').textContent = "Create or select a section from the sidebar.";
+        document.getElementById('student-count').textContent = "0";
+      }
+
+      // 3. Tab Visibility
+      const tabStudents = document.getElementById('tab-students');
+      const tabActivities = document.getElementById('tab-activities');
+      const btnStudents = document.getElementById('tab-btn-students');
+      const btnActivities = document.getElementById('tab-btn-activities');
+
+      if (state.activeTab === 'students') {
+        tabStudents.classList.remove('hidden');
+        tabActivities.classList.add('hidden');
+        btnStudents.className = "pb-2 border-b-2 font-semibold text-sm border-indigo-600 text-indigo-600";
+        btnActivities.className = "pb-2 border-b-2 font-semibold text-sm border-transparent text-slate-500 hover:text-slate-700";
+      } else {
+        tabStudents.classList.add('hidden');
+        tabActivities.classList.remove('hidden');
+        btnStudents.className = "pb-2 border-b-2 font-semibold text-sm border-transparent text-slate-500 hover:text-slate-700";
+        btnActivities.className = "pb-2 border-b-2 font-semibold text-sm border-indigo-600 text-indigo-600";
+      }
+
+      // 4. Render Students Table
+      const tableBody = document.getElementById('students-table-body');
+      tableBody.innerHTML = '';
+      const searchQuery = (document.getElementById('student-search').value || '').toLowerCase();
+
+      if (activeSec && activeSec.students.length > 0) {
+        const filtered = activeSec.students.filter(s => s.name.toLowerCase().includes(searchQuery));
+        filtered.forEach(s => {
+          const row = document.createElement('tr');
+          row.className = "hover:bg-slate-50 transition";
+          row.innerHTML = `
+            <td class="p-3 text-slate-500 font-mono text-xs">${s.lrn}</td>
+            <td class="p-3 font-medium text-slate-800">${s.name}</td>
+            <td class="p-3 text-center"><span class="px-2 py-0.5 text-xs rounded-full ${s.gender === 'F' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'}">${s.gender}</span></td>
+            <td class="p-3 text-right">
+              <button onclick="deleteStudent('${s.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-medium">Remove</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } else {
+        tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 text-sm">No students recorded in this section.</td></tr>`;
+      }
+
+      // 5. Render Activities
+      const activitiesContainer = document.getElementById('activities-list');
+      activitiesContainer.innerHTML = '';
+
+      if (activeSec && activeSec.activities.length > 0) {
+        activeSec.activities.forEach(act => {
+          const card = document.createElement('div');
+          card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center";
+          card.innerHTML = `
+            <div>
+              <h4 class="font-bold text-slate-800">${act.title}</h4>
+              <p class="text-xs text-slate-500">Max Score: <span class="font-semibold text-indigo-600">${act.maxScore} pts</span></p>
+            </div>
+            <button onclick="deleteActivity('${act.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-medium">Delete</button>
+          `;
+          activitiesContainer.appendChild(card);
+        });
+      } else {
+        activitiesContainer.innerHTML = `<div class="bg-white p-6 rounded-xl border border-slate-200 text-center text-slate-400 text-sm">No activities created yet.</div>`;
+      }
     }
+
+    // Initial First Render
+    render();
   </script>
 </body>
 </html>
