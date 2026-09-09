@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Math 7 Classroom Hub</title>
+  <title>Classroom Activity Hub</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -119,6 +119,7 @@
       position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
+    /* FREEZE ONLY FIRST COLUMN (STUDENTS) */
     th:first-child, td:first-child {
       position: sticky; left: 0; z-index: 3; background: var(--card);
       border-right: 2px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05);
@@ -126,7 +127,10 @@
     }
 
     th:first-child { background: #f1f5f9; z-index: 11; }
-    th:not(:first-child), td:not(:first-child) { min-width: 75px; max-width: 110px; }
+
+    th:not(:first-child), td:not(:first-child) {
+      min-width: 75px; max-width: 110px;
+    }
 
     .student-info { display: flex; align-items: center; gap: 0.35rem; text-align: left; }
     .student-name { cursor: default; font-size: 0.78rem; line-height: 1.1; word-break: break-word; }
@@ -141,12 +145,14 @@
       margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
     }
 
+    /* ITALICIZED REMARKS / STATUS CELL */
     .status-cell { 
       font-size: 0.75rem; color: #15803d; font-weight: 600; font-style: italic; 
       cursor: default; line-height: 1.1; word-break: break-word; min-width: 110px; 
     }
     body.teacher-mode .status-cell { cursor: pointer; text-decoration: underline dotted var(--primary); }
 
+    /* TOKEN BUTTON STYLING */
     .token-btn {
       background: none; border: none; font-size: 1.3rem; cursor: pointer;
       transition: transform 0.15s; opacity: 1 !important; filter: none !important;
@@ -164,6 +170,7 @@
     .icon-btn-sm:hover { opacity: 1; }
     .nav-breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 
+    /* LESSON NOTES & RESOURCES SECTION */
     .resources-section {
       margin-top: 2rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 1.25rem;
     }
@@ -172,6 +179,7 @@
       display: flex; justify-content: space-between; align-items: center; gap: 1rem;
     }
 
+    /* MODAL POP-UP STYLING */
     .modal-backdrop {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.6);
       display: none; justify-content: center; align-items: center; z-index: 100; padding: 1rem;
@@ -201,8 +209,8 @@
     <div class="banner-overlay">
       <div class="container banner-content">
         <div>
-          <h1 id="banner-heading-text" class="editable-heading" onclick="editHeadingText()" style="font-size: 2rem;">📐 Math 7 Activity Hub</h1>
-          <p style="opacity: 0.9; font-size: 0.95rem;">Track math progress, performance tasks, and earn rewards!</p>
+          <h1 id="banner-heading-text" class="editable-heading" onclick="editHeadingText()" style="font-size: 2rem;">🎓 Classroom Activity Hub</h1>
+          <p style="opacity: 0.9; font-size: 0.95rem;">Track progress, complete performance tasks, and earn reward tokens!</p>
         </div>
         <div>
           <span id="mode-indicator" class="mode-badge mode-student">👀 Student View</span>
@@ -259,7 +267,7 @@
 
     <!-- HOME VIEW -->
     <div id="home-view">
-      <h3 style="margin-bottom: 1rem; color: var(--muted);">Select Your Math Section</h3>
+      <h3 style="margin-bottom: 1rem; color: var(--muted);">Select Your Grade Level / Section</h3>
       <div class="grid-container" id="sections-grid"></div>
     </div>
 
@@ -283,12 +291,13 @@
         </table>
       </div>
 
+      <!-- LESSON NOTES & ATTACHMENTS SECTION -->
       <div class="resources-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
           <h3>📚 Lesson Notes & Learning Attachments</h3>
           <button class="btn" style="display:none;" id="add-resource-btn" onclick="addResource()">+ Add Resource</button>
         </div>
-        <p style="font-size: 0.85rem; color: var(--muted);">Access supplementary math guides, lectures, and download links below.</p>
+        <p style="font-size: 0.85rem; color: var(--muted);">Access supplementary guides, lectures, and download link modules below.</p>
         <div id="resources-list"></div>
       </div>
     </div>
@@ -312,21 +321,18 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // UPDATED FIREBASE CONFIGURATION FOR MATH7 DATABASE
     const firebaseConfig = {
-      apiKey: "AIzaSyA0Yez-NLfbhU2Zj7CqeyNAgJ-vOQYVlvw",
-      authDomain: "math7-database-26.firebaseapp.com",
-      databaseURL: "https://math7-database-26-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "math7-database-26",
-      storageBucket: "math7-database-26.firebasestorage.app",
-      messagingSenderId: "1057749107077",
-      appId: "1:1057749107077:web:aae6d67955e0ba75f0c4ec"
+      apiKey: "AIzaSyAABIEep2GsKERmOWUktIzT1_AEnv2MEZo",
+      authDomain: "math-tracker-d070f.firebaseapp.com",
+      projectId: "math-tracker-d070f",
+      storageBucket: "math-tracker-d070f.firebasestorage.app",
+      messagingSenderId: "1040140743983",
+      appId: "1:1040140743983:web:e4e1ca6b1e6f6c6d269dda"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    // UNIQUE DOCUMENT STORAGE REFERENCE TO PREVENT DATA OVERWRITE
-    const docRef = db.collection('dashboard').doc('state_math7');
+    const docRef = db.collection('dashboard').doc('state');
 
     const TEACHER_PASS = "121488";
     let isTeacher = false;
@@ -335,9 +341,10 @@
     let activeEditingStudentId = null;
     let activeEditingSectionId = null;
 
+    /* CLEAN STATE - ALL PREVIOUS DATA REMOVED */
     let state = {
-      headingText: "📐 Math 7 Activity Hub",
-      banner: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=1200&auto=format&fit=crop&q=60",
+      headingText: "🎓 Classroom Activity Hub",
+      banner: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1200&auto=format&fit=crop&q=60",
       bannerY: 50,
       sections: [],
       students: [],
@@ -359,7 +366,7 @@
     function saveState() {
       docRef.set(state).catch(err => {
         console.error("Firestore Save Error: ", err);
-        alert("Failed to save changes! The uploaded image might be too large for Firestore.");
+        alert("Failed to save changes! The uploaded image might still be too large for Firestore's 1MB limit.");
       });
     }
 
@@ -420,7 +427,7 @@
 
     function editHeadingText() {
       if (!isTeacher) return;
-      const current = state.headingText || "📐 Math 7 Activity Hub";
+      const current = state.headingText || "🎓 Classroom Activity Hub";
       const updated = prompt("Edit Main Hub Heading:", current);
       if (updated && updated.trim() !== "") {
         state.headingText = updated.trim();
@@ -448,13 +455,13 @@
       const bannerEl = document.getElementById('main-banner');
       if (state.banner) bannerEl.style.backgroundImage = `url('${state.banner}')`;
       bannerEl.style.backgroundPositionY = `${state.bannerY || 50}%`;
-      document.getElementById('banner-heading-text').innerText = state.headingText || "📐 Math 7 Activity Hub";
+      document.getElementById('banner-heading-text').innerText = state.headingText || "🎓 Classroom Activity Hub";
 
       const grid = document.getElementById('sections-grid');
       grid.innerHTML = '';
 
       if (!state.sections || state.sections.length === 0) {
-        grid.innerHTML = `<p style="color:var(--muted); font-style:italic; grid-column:1/-1;">No math sections created yet. Log in as Teacher to add a section!</p>`;
+        grid.innerHTML = `<p style="color:var(--muted); font-style:italic; grid-column:1/-1;">No sections created yet. Log in as Teacher to add your first section!</p>`;
         return;
       }
 
@@ -548,7 +555,7 @@
       tbody.innerHTML = '';
 
       if (students.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${activities.length + 2}" style="padding:1.5rem; color:var(--muted); font-style:italic;">No students added to this section yet. Use Teacher Controls to add students.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${activities.length + 2}" style="padding:1.5rem; color:var(--muted); font-style:italic;">No students added to this section yet. Use Teacher Controls above to add students.</td></tr>`;
         return;
       }
 
@@ -610,7 +617,7 @@
 
       const sectionResources = (state.resources || []).filter(r => r.sectionId === currentSection.id);
       if (sectionResources.length === 0) {
-        list.innerHTML = `<p style="font-size:0.85rem; color:var(--muted); margin-top:0.5rem; font-style: italic;">No notes or attachments posted yet.</p>`;
+        list.innerHTML = `<p style="font-size:0.85rem; color:var(--muted); margin-top:0.5rem; font-style: italic;">No notes or lesson attachments posted yet.</p>`;
         return;
       }
 
@@ -636,7 +643,7 @@
 
     function addResource() {
       if (!isTeacher || !currentSection) return;
-      const title = prompt("Enter Lesson Title (e.g. Integers Review):");
+      const title = prompt("Enter Lesson Title (e.g. Chapter 1 Notes):");
       if (!title) return;
       const note = prompt("Enter Short Note or Instructions:");
       const link = prompt("Enter Resource URL / Drive Link (Optional):");
@@ -677,7 +684,7 @@
       document.getElementById('modal-label').innerText = act.label || "Activity Details";
       document.getElementById('modal-title').innerText = act.title;
       document.getElementById('modal-date').innerText = act.date ? `📅 Due/Assigned Date: ${act.date}` : '📅 No specific date set';
-      document.getElementById('modal-desc').innerText = act.description || "No specific instructions provided.";
+      document.getElementById('modal-desc').innerText = act.description || "No specific instructions provided for this activity.";
       
       const linkContainer = document.getElementById('modal-link-container');
       if (act.link) {
@@ -727,7 +734,7 @@
 
     function adjustBannerY() {
       const current = state.bannerY || 50;
-      const updated = prompt("Adjust vertical banner frame (0 = top, 50 = middle, 100 = bottom):", current);
+      const updated = prompt("Adjust vertical frame position (enter 0 for top, 50 for middle, 100 for bottom):", current);
       if (updated !== null && !isNaN(updated)) {
         state.bannerY = Math.min(100, Math.max(0, parseInt(updated)));
         saveState();
@@ -812,7 +819,7 @@
 
     function deleteSection(event, secId) {
       event.stopPropagation();
-      if (confirm("Delete section and enrolled students?")) {
+      if (confirm("Delete section and students?")) {
         state.sections = state.sections.filter(s => s.id !== secId);
         state.students = state.students.filter(s => s.sectionId !== secId);
         saveState();
