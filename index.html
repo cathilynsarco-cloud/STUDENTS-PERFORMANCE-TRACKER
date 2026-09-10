@@ -328,7 +328,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const dbRef = db.ref('dashboard/state');
+    const docRef = db.collection('dashboard').doc('website_2_state');
 
     const TEACHER_PASS = "121488";
     let isTeacher = false;
